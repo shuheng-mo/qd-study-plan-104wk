@@ -39,3 +39,8 @@
 
 # debug information files
 *.dwo
+
+# CPP ignores
+bin/
+build/
+obj/
