@@ -1,4 +1,4 @@
-## 104周转行Quant | C++的OOP高级用法（上）
+## 104周转行Quant | W05 - C++的OOP高级用法（上）
 
 > SigmaX逐渐做大做强，公司越大，问题越多...
 > 本期关键词：CRTP、Mixin、Policy-Based Design、模板元编程、类型擦除
