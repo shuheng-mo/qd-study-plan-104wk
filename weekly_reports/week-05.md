@@ -399,6 +399,6 @@ public:
 
 本周代码已经上传到Github仓库🔗：[https://github.com/shuheng-mo/qd-study-plan-104wk.git](https://github.com/shuheng-mo/qd-study-plan-104wk.git)，欢迎Star⭐、贡献代码或issue。
 
-**下周预告：W04 - C++的OOP高级用法（下）**
+**下周预告：W06 - C++的OOP高级用法（下）**
 
 👋各位下周五见，下周SigmaX将会迎来更加硬核的挑战。
