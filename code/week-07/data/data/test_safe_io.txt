@@ -1,0 +1,3 @@
+SigmaX Quant Trading System
+Carol's IO System Refactoring
+Week 7 - IO & File Management
