@@ -48,3 +48,9 @@ obj/
 .vscode/
 
 optimization-plan/
+
+# Manim动画文件
+code/week-09/manim_files/*
+
+#
+*.svg

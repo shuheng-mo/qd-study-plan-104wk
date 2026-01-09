@@ -1,0 +1,821 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2×2 矩阵变换可视化</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            color: #fff;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        h1 {
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 2em;
+            background: linear-gradient(90deg, #00d2ff, #3a7bd5);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .subtitle {
+            text-align: center;
+            color: #888;
+            margin-bottom: 30px;
+        }
+        
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 400px;
+            gap: 30px;
+        }
+        
+        .canvas-container {
+            background: rgba(255,255,255,0.05);
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+        }
+        
+        canvas {
+            display: block;
+            margin: 0 auto;
+            background: #0d1117;
+            border-radius: 8px;
+        }
+        
+        .controls {
+            background: rgba(255,255,255,0.05);
+            border-radius: 16px;
+            padding: 25px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+        }
+        
+        .control-section {
+            margin-bottom: 25px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .control-section:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+        
+        .control-section h3 {
+            color: #00d2ff;
+            margin-bottom: 15px;
+            font-size: 1.1em;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .slider-group {
+            margin-bottom: 15px;
+        }
+        
+        .slider-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 0.9em;
+            color: #aaa;
+        }
+        
+        .slider-value {
+            color: #00d2ff;
+            font-weight: bold;
+            font-family: 'Courier New', monospace;
+        }
+        
+        input[type="range"] {
+            width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            background: #333;
+            outline: none;
+            -webkit-appearance: none;
+        }
+        
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #00d2ff, #3a7bd5);
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(0,210,255,0.4);
+        }
+        
+        .preset-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        
+        .preset-btn {
+            padding: 12px 15px;
+            border: none;
+            border-radius: 8px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-size: 0.85em;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .preset-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .matrix-display {
+            background: #0d1117;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            margin-top: 15px;
+        }
+        
+        .matrix-row {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin: 5px 0;
+        }
+        
+        .matrix-cell {
+            width: 70px;
+            text-align: right;
+            color: #4ade80;
+        }
+        
+        .matrix-bracket {
+            font-size: 2.5em;
+            line-height: 0.8;
+            color: #666;
+        }
+        
+        .info-panel {
+            background: rgba(0,210,255,0.1);
+            border-left: 3px solid #00d2ff;
+            padding: 15px;
+            margin-top: 15px;
+            border-radius: 0 8px 8px 0;
+            font-size: 0.85em;
+        }
+        
+        .info-panel strong {
+            color: #00d2ff;
+        }
+        
+        .legend {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-top: 15px;
+            font-size: 0.9em;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .legend-color {
+            width: 20px;
+            height: 3px;
+            border-radius: 2px;
+        }
+        
+        .eigenvector-toggle {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .toggle-switch {
+            position: relative;
+            width: 50px;
+            height: 26px;
+        }
+        
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #333;
+            transition: .4s;
+            border-radius: 26px;
+        }
+        
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 20px;
+            width: 20px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        
+        input:checked + .toggle-slider {
+            background: linear-gradient(135deg, #00d2ff, #3a7bd5);
+        }
+        
+        input:checked + .toggle-slider:before {
+            transform: translateX(24px);
+        }
+        
+        .animation-btn {
+            width: 100%;
+            padding: 15px;
+            margin-top: 15px;
+            border: none;
+            border-radius: 8px;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            font-size: 1em;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .animation-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(240, 147, 251, 0.4);
+        }
+
+        @media (max-width: 900px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔢 2×2 矩阵变换可视化</h1>
+        <p class="subtitle">观察线性变换如何将单位圆变换成椭圆</p>
+        
+        <div class="main-content">
+            <div class="canvas-container">
+                <canvas id="canvas" width="600" height="600"></canvas>
+                <div class="legend">
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: rgba(100,200,255,0.5)"></div>
+                        <span>原始单位圆</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #f5576c"></div>
+                        <span>变换后的椭圆</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #4ade80"></div>
+                        <span>特征向量</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="controls">
+                <div class="control-section">
+                    <h3>🔄 旋转 (Rotation)</h3>
+                    <div class="slider-group">
+                        <div class="slider-label">
+                            <span>角度 θ</span>
+                            <span class="slider-value" id="rotationValue">0°</span>
+                        </div>
+                        <input type="range" id="rotation" min="-180" max="180" value="0" step="1">
+                    </div>
+                </div>
+                
+                <div class="control-section">
+                    <h3>📐 缩放 (Scaling)</h3>
+                    <div class="slider-group">
+                        <div class="slider-label">
+                            <span>X轴缩放 Sₓ</span>
+                            <span class="slider-value" id="scaleXValue">1.00</span>
+                        </div>
+                        <input type="range" id="scaleX" min="0.1" max="3" value="1" step="0.05">
+                    </div>
+                    <div class="slider-group">
+                        <div class="slider-label">
+                            <span>Y轴缩放 Sᵧ</span>
+                            <span class="slider-value" id="scaleYValue">1.00</span>
+                        </div>
+                        <input type="range" id="scaleY" min="0.1" max="3" value="1" step="0.05">
+                    </div>
+                </div>
+                
+                <div class="control-section">
+                    <h3>◇ 剪切 (Shear)</h3>
+                    <div class="slider-group">
+                        <div class="slider-label">
+                            <span>水平剪切 kₓ</span>
+                            <span class="slider-value" id="shearXValue">0.00</span>
+                        </div>
+                        <input type="range" id="shearX" min="-2" max="2" value="0" step="0.05">
+                    </div>
+                    <div class="slider-group">
+                        <div class="slider-label">
+                            <span>垂直剪切 kᵧ</span>
+                            <span class="slider-value" id="shearYValue">0.00</span>
+                        </div>
+                        <input type="range" id="shearY" min="-2" max="2" value="0" step="0.05">
+                    </div>
+                </div>
+                
+                <div class="control-section">
+                    <h3>⚡ 预设变换</h3>
+                    <div class="preset-buttons">
+                        <button class="preset-btn" onclick="applyPreset('identity')">单位矩阵</button>
+                        <button class="preset-btn" onclick="applyPreset('rotate45')">旋转45°</button>
+                        <button class="preset-btn" onclick="applyPreset('stretch')">拉伸椭圆</button>
+                        <button class="preset-btn" onclick="applyPreset('shear')">剪切变换</button>
+                        <button class="preset-btn" onclick="applyPreset('squeeze')">挤压变换</button>
+                        <button class="preset-btn" onclick="applyPreset('reflect')">反射变换</button>
+                    </div>
+                    <button class="animation-btn" id="animateBtn" onclick="toggleAnimation()">
+                        ▶ 播放旋转动画
+                    </button>
+                </div>
+                
+                <div class="control-section">
+                    <h3>📊 当前变换矩阵</h3>
+                    <div class="matrix-display">
+                        <div style="display: flex; align-items: center; justify-content: center;">
+                            <span class="matrix-bracket">[</span>
+                            <div>
+                                <div class="matrix-row">
+                                    <span class="matrix-cell" id="m00">1.000</span>
+                                    <span class="matrix-cell" id="m01">0.000</span>
+                                </div>
+                                <div class="matrix-row">
+                                    <span class="matrix-cell" id="m10">0.000</span>
+                                    <span class="matrix-cell" id="m11">1.000</span>
+                                </div>
+                            </div>
+                            <span class="matrix-bracket">]</span>
+                        </div>
+                    </div>
+                    
+                    <div class="eigenvector-toggle">
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="showEigen" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                        <span>显示特征向量</span>
+                    </div>
+                    
+                    <div class="info-panel" id="infoPanel">
+                        <strong>行列式 (det):</strong> <span id="detValue">1.000</span><br>
+                        <strong>面积变化:</strong> <span id="areaChange">1.00×</span><br>
+                        <strong>特征值:</strong> <span id="eigenvalues">λ₁=1, λ₂=1</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const width = canvas.width;
+        const height = canvas.height;
+        const scale = 80; // pixels per unit
+        const centerX = width / 2;
+        const centerY = height / 2;
+        
+        let isAnimating = false;
+        let animationId = null;
+        
+        // 当前矩阵参数
+        let params = {
+            rotation: 0,
+            scaleX: 1,
+            scaleY: 1,
+            shearX: 0,
+            shearY: 0
+        };
+        
+        // 计算变换矩阵
+        function getTransformMatrix() {
+            const theta = params.rotation * Math.PI / 180;
+            const cos = Math.cos(theta);
+            const sin = Math.sin(theta);
+            
+            // 旋转矩阵
+            const R = [[cos, -sin], [sin, cos]];
+            // 缩放矩阵
+            const S = [[params.scaleX, 0], [0, params.scaleY]];
+            // 剪切矩阵
+            const H = [[1, params.shearX], [params.shearY, 1]];
+            
+            // 复合变换: R * S * H
+            const RS = matMul(R, S);
+            return matMul(RS, H);
+        }
+        
+        // 矩阵乘法
+        function matMul(A, B) {
+            return [
+                [A[0][0]*B[0][0] + A[0][1]*B[1][0], A[0][0]*B[0][1] + A[0][1]*B[1][1]],
+                [A[1][0]*B[0][0] + A[1][1]*B[1][0], A[1][0]*B[0][1] + A[1][1]*B[1][1]]
+            ];
+        }
+        
+        // 计算行列式
+        function det(M) {
+            return M[0][0] * M[1][1] - M[0][1] * M[1][0];
+        }
+        
+        // 计算特征值
+        function eigenvalues(M) {
+            const trace = M[0][0] + M[1][1];
+            const d = det(M);
+            const disc = trace * trace - 4 * d;
+            
+            if (disc >= 0) {
+                const sqrtDisc = Math.sqrt(disc);
+                return [(trace + sqrtDisc) / 2, (trace - sqrtDisc) / 2];
+            } else {
+                // 复数特征值
+                const real = trace / 2;
+                const imag = Math.sqrt(-disc) / 2;
+                return [{real, imag}, {real, imag: -imag}];
+            }
+        }
+        
+        // 计算特征向量（简化版，只处理实特征值）
+        function eigenvectors(M) {
+            const eigs = eigenvalues(M);
+            const vectors = [];
+            
+            for (const lambda of eigs) {
+                if (typeof lambda === 'number') {
+                    // 实特征值
+                    const a = M[0][0] - lambda;
+                    const b = M[0][1];
+                    
+                    let v;
+                    if (Math.abs(b) > 1e-10) {
+                        v = [-b, a];
+                    } else if (Math.abs(a) > 1e-10) {
+                        v = [1, 0];
+                    } else {
+                        v = [0, 1];
+                    }
+                    
+                    // 归一化
+                    const len = Math.sqrt(v[0]*v[0] + v[1]*v[1]);
+                    vectors.push([v[0]/len, v[1]/len]);
+                }
+            }
+            
+            return vectors;
+        }
+        
+        // 变换一个点
+        function transform(M, x, y) {
+            return [
+                M[0][0] * x + M[0][1] * y,
+                M[1][0] * x + M[1][1] * y
+            ];
+        }
+        
+        // 绘制坐标轴和网格
+        function drawGrid() {
+            ctx.strokeStyle = '#2a2a4a';
+            ctx.lineWidth = 1;
+            
+            // 网格线
+            for (let i = -4; i <= 4; i++) {
+                ctx.beginPath();
+                ctx.moveTo(centerX + i * scale, 0);
+                ctx.lineTo(centerX + i * scale, height);
+                ctx.stroke();
+                
+                ctx.beginPath();
+                ctx.moveTo(0, centerY + i * scale);
+                ctx.lineTo(width, centerY + i * scale);
+                ctx.stroke();
+            }
+            
+            // 坐标轴
+            ctx.strokeStyle = '#555';
+            ctx.lineWidth = 2;
+            
+            ctx.beginPath();
+            ctx.moveTo(0, centerY);
+            ctx.lineTo(width, centerY);
+            ctx.stroke();
+            
+            ctx.beginPath();
+            ctx.moveTo(centerX, 0);
+            ctx.lineTo(centerX, height);
+            ctx.stroke();
+            
+            // 箭头
+            ctx.fillStyle = '#555';
+            ctx.beginPath();
+            ctx.moveTo(width - 10, centerY - 5);
+            ctx.lineTo(width, centerY);
+            ctx.lineTo(width - 10, centerY + 5);
+            ctx.fill();
+            
+            ctx.beginPath();
+            ctx.moveTo(centerX - 5, 10);
+            ctx.lineTo(centerX, 0);
+            ctx.lineTo(centerX + 5, 10);
+            ctx.fill();
+            
+            // 标签
+            ctx.fillStyle = '#666';
+            ctx.font = '14px sans-serif';
+            ctx.fillText('x', width - 15, centerY + 20);
+            ctx.fillText('y', centerX + 10, 15);
+        }
+        
+        // 绘制单位圆
+        function drawUnitCircle() {
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, scale, 0, Math.PI * 2);
+            ctx.strokeStyle = 'rgba(100, 200, 255, 0.5)';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            ctx.fillStyle = 'rgba(100, 200, 255, 0.1)';
+            ctx.fill();
+        }
+        
+        // 绘制变换后的椭圆
+        function drawTransformedCircle(M) {
+            ctx.beginPath();
+            
+            const numPoints = 200;
+            for (let i = 0; i <= numPoints; i++) {
+                const theta = (2 * Math.PI * i) / numPoints;
+                const x = Math.cos(theta);
+                const y = Math.sin(theta);
+                const [tx, ty] = transform(M, x, y);
+                
+                const px = centerX + tx * scale;
+                const py = centerY - ty * scale; // 翻转y轴
+                
+                if (i === 0) {
+                    ctx.moveTo(px, py);
+                } else {
+                    ctx.lineTo(px, py);
+                }
+            }
+            
+            ctx.closePath();
+            ctx.fillStyle = 'rgba(245, 87, 108, 0.3)';
+            ctx.fill();
+            ctx.strokeStyle = '#f5576c';
+            ctx.lineWidth = 3;
+            ctx.stroke();
+        }
+        
+        // 绘制特征向量
+        function drawEigenvectors(M) {
+            const vectors = eigenvectors(M);
+            const eigs = eigenvalues(M);
+            
+            vectors.forEach((v, i) => {
+                const lambda = typeof eigs[i] === 'number' ? eigs[i] : null;
+                if (lambda === null) return;
+                
+                // 变换后的特征向量方向应该相同，只是长度变化
+                const len = 2.5;
+                
+                ctx.beginPath();
+                ctx.moveTo(centerX - v[0] * scale * len, centerY + v[1] * scale * len);
+                ctx.lineTo(centerX + v[0] * scale * len, centerY - v[1] * scale * len);
+                ctx.strokeStyle = '#4ade80';
+                ctx.lineWidth = 2;
+                ctx.setLineDash([5, 5]);
+                ctx.stroke();
+                ctx.setLineDash([]);
+                
+                // 绘制箭头
+                const arrowX = centerX + v[0] * scale * len;
+                const arrowY = centerY - v[1] * scale * len;
+                
+                ctx.beginPath();
+                ctx.arc(arrowX, arrowY, 5, 0, Math.PI * 2);
+                ctx.fillStyle = '#4ade80';
+                ctx.fill();
+            });
+        }
+        
+        // 绘制基向量变换
+        function drawBasisVectors(M) {
+            // e1 = (1, 0) 变换后
+            const [e1x, e1y] = transform(M, 1, 0);
+            // e2 = (0, 1) 变换后
+            const [e2x, e2y] = transform(M, 0, 1);
+            
+            // e1 变换后 (红色)
+            ctx.beginPath();
+            ctx.moveTo(centerX, centerY);
+            ctx.lineTo(centerX + e1x * scale, centerY - e1y * scale);
+            ctx.strokeStyle = '#ff6b6b';
+            ctx.lineWidth = 3;
+            ctx.stroke();
+            
+            // e2 变换后 (蓝色)
+            ctx.beginPath();
+            ctx.moveTo(centerX, centerY);
+            ctx.lineTo(centerX + e2x * scale, centerY - e2y * scale);
+            ctx.strokeStyle = '#4dabf7';
+            ctx.lineWidth = 3;
+            ctx.stroke();
+        }
+        
+        // 主绘制函数
+        function draw() {
+            ctx.clearRect(0, 0, width, height);
+            
+            const M = getTransformMatrix();
+            
+            drawGrid();
+            drawUnitCircle();
+            drawTransformedCircle(M);
+            drawBasisVectors(M);
+            
+            if (document.getElementById('showEigen').checked) {
+                drawEigenvectors(M);
+            }
+            
+            // 更新矩阵显示
+            document.getElementById('m00').textContent = M[0][0].toFixed(3);
+            document.getElementById('m01').textContent = M[0][1].toFixed(3);
+            document.getElementById('m10').textContent = M[1][0].toFixed(3);
+            document.getElementById('m11').textContent = M[1][1].toFixed(3);
+            
+            // 更新信息面板
+            const d = det(M);
+            document.getElementById('detValue').textContent = d.toFixed(3);
+            document.getElementById('areaChange').textContent = Math.abs(d).toFixed(2) + '×';
+            
+            const eigs = eigenvalues(M);
+            let eigStr;
+            if (typeof eigs[0] === 'number') {
+                eigStr = `λ₁=${eigs[0].toFixed(2)}, λ₂=${eigs[1].toFixed(2)}`;
+            } else {
+                eigStr = `${eigs[0].real.toFixed(2)} ± ${Math.abs(eigs[0].imag).toFixed(2)}i`;
+            }
+            document.getElementById('eigenvalues').textContent = eigStr;
+        }
+        
+        // 更新滑块值显示
+        function updateSliderDisplay(id, value, suffix = '') {
+            document.getElementById(id + 'Value').textContent = value + suffix;
+        }
+        
+        // 设置滑块事件监听
+        function setupSliders() {
+            document.getElementById('rotation').addEventListener('input', (e) => {
+                params.rotation = parseFloat(e.target.value);
+                updateSliderDisplay('rotation', params.rotation, '°');
+                draw();
+            });
+            
+            document.getElementById('scaleX').addEventListener('input', (e) => {
+                params.scaleX = parseFloat(e.target.value);
+                updateSliderDisplay('scaleX', params.scaleX.toFixed(2));
+                draw();
+            });
+            
+            document.getElementById('scaleY').addEventListener('input', (e) => {
+                params.scaleY = parseFloat(e.target.value);
+                updateSliderDisplay('scaleY', params.scaleY.toFixed(2));
+                draw();
+            });
+            
+            document.getElementById('shearX').addEventListener('input', (e) => {
+                params.shearX = parseFloat(e.target.value);
+                updateSliderDisplay('shearX', params.shearX.toFixed(2));
+                draw();
+            });
+            
+            document.getElementById('shearY').addEventListener('input', (e) => {
+                params.shearY = parseFloat(e.target.value);
+                updateSliderDisplay('shearY', params.shearY.toFixed(2));
+                draw();
+            });
+            
+            document.getElementById('showEigen').addEventListener('change', draw);
+        }
+        
+        // 预设变换
+        function applyPreset(preset) {
+            stopAnimation();
+            
+            switch (preset) {
+                case 'identity':
+                    params = { rotation: 0, scaleX: 1, scaleY: 1, shearX: 0, shearY: 0 };
+                    break;
+                case 'rotate45':
+                    params = { rotation: 45, scaleX: 1, scaleY: 1, shearX: 0, shearY: 0 };
+                    break;
+                case 'stretch':
+                    params = { rotation: 0, scaleX: 2, scaleY: 0.5, shearX: 0, shearY: 0 };
+                    break;
+                case 'shear':
+                    params = { rotation: 0, scaleX: 1, scaleY: 1, shearX: 0.8, shearY: 0 };
+                    break;
+                case 'squeeze':
+                    params = { rotation: 45, scaleX: 1.5, scaleY: 0.667, shearX: 0, shearY: 0 };
+                    break;
+                case 'reflect':
+                    params = { rotation: 0, scaleX: -1, scaleY: 1, shearX: 0, shearY: 0 };
+                    break;
+            }
+            
+            // 更新滑块
+            document.getElementById('rotation').value = params.rotation;
+            document.getElementById('scaleX').value = params.scaleX;
+            document.getElementById('scaleY').value = params.scaleY;
+            document.getElementById('shearX').value = params.shearX;
+            document.getElementById('shearY').value = params.shearY;
+            
+            // 更新显示
+            updateSliderDisplay('rotation', params.rotation, '°');
+            updateSliderDisplay('scaleX', params.scaleX.toFixed(2));
+            updateSliderDisplay('scaleY', params.scaleY.toFixed(2));
+            updateSliderDisplay('shearX', params.shearX.toFixed(2));
+            updateSliderDisplay('shearY', params.shearY.toFixed(2));
+            
+            draw();
+        }
+        
+        // 动画
+        function toggleAnimation() {
+            if (isAnimating) {
+                stopAnimation();
+            } else {
+                startAnimation();
+            }
+        }
+        
+        function startAnimation() {
+            isAnimating = true;
+            document.getElementById('animateBtn').textContent = '⏸ 暂停动画';
+            animate();
+        }
+        
+        function stopAnimation() {
+            isAnimating = false;
+            document.getElementById('animateBtn').textContent = '▶ 播放旋转动画';
+            if (animationId) {
+                cancelAnimationFrame(animationId);
+            }
+        }
+        
+        function animate() {
+            if (!isAnimating) return;
+            
+            params.rotation = (params.rotation + 1) % 360;
+            document.getElementById('rotation').value = params.rotation;
+            updateSliderDisplay('rotation', params.rotation, '°');
+            draw();
+            
+            animationId = requestAnimationFrame(animate);
+        }
+        
+        // 初始化
+        setupSliders();
+        draw();
+    </script>
+</body>
+</html>
