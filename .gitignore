@@ -51,6 +51,7 @@ optimization-plan/
 
 # Manim动画文件
 code/week-09/manim_files/*
+code/week-10/manim_files/*
 
 #
 *.svg
