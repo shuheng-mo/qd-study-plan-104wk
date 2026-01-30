@@ -53,5 +53,7 @@ optimization-plan/
 code/week-09/manim_files/*
 code/week-10/manim_files/*
 code/week-11/manim_files/*
+code/week-12/manim_files/*
+
 #
 *.svg
